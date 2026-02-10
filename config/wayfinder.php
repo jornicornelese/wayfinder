@@ -22,6 +22,7 @@ return [
             'events' => env('WAYFINDER_GENERATE_BROADCAST_EVENTS', true),
         ],
         'environment_variables' => env('WAYFINDER_GENERATE_ENVIRONMENT_VARIABLES', true),
+        'resources' => env('WAYFINDER_GENERATE_RESOURCES', true),
         'enums' => env('WAYFINDER_GENERATE_ENUMS', true),
     ],
 

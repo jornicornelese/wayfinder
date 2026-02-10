@@ -15,6 +15,7 @@ use Laravel\Wayfinder\Converters\Enums;
 use Laravel\Wayfinder\Converters\EnvironmentVariables;
 use Laravel\Wayfinder\Converters\InertiaSharedData;
 use Laravel\Wayfinder\Converters\Models;
+use Laravel\Wayfinder\Converters\Resources;
 use Laravel\Wayfinder\Converters\Routes;
 use Laravel\Wayfinder\Langs\TypeScript;
 use Laravel\Wayfinder\Langs\TypeScript\Import;
@@ -52,6 +53,7 @@ class GenerateCommand extends Command
 
     public function handle(
         Models $modelConverter,
+        Resources $resourceConverter,
         InertiaSharedData $inertiaSharedDataConverter,
         BroadcastChannels $broadcastChannelsConverter,
         BroadcastEvents $broadcastEventsConverter,
@@ -112,6 +114,10 @@ class GenerateCommand extends Command
             $this->ranger->onEnvironmentVariables(
                 fn ($channels) => $this->results[] = $environmentVariablesConverter->convert($channels),
             );
+        }
+
+        if ($this->config->get('wayfinder.generate.resources', true)) {
+            $this->ranger->onResource(fn ($resource) => $this->results[] = $resourceConverter->convert($resource));
         }
 
         if ($this->config->get('wayfinder.generate.enums', true)) {
