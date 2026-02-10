@@ -10,10 +10,27 @@ class JsonData extends Converter
 {
     public function convert(JsonResponse $response, Route $route): ?string
     {
-        if ($route->hasController()) {
-            return TypeScript::objectToRecord($response->data, false);
+        if (! $route->hasController()) {
+            return null;
         }
 
-        return null;
+        if ($response->resourceClass !== null) {
+            return $this->convertResourceResponse($response);
+        }
+
+        return (string) TypeScript::objectToRecord($response->data, false);
+    }
+
+    protected function convertResourceResponse(JsonResponse $response): string
+    {
+        $resourceType = str_replace('\\', '.', $response->resourceClass);
+
+        $innerType = $response->isCollection ? $resourceType.'[]' : $resourceType;
+
+        if ($response->wrap !== null) {
+            return '{ '.$response->wrap.': '.$innerType.' }';
+        }
+
+        return $innerType;
     }
 }
