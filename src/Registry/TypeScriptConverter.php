@@ -2,11 +2,15 @@
 
 namespace Laravel\Wayfinder\Registry;
 
+use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Stringable;
 use InvalidArgumentException;
 use Laravel\Surveyor\Types;
+use Laravel\Surveyor\Types\ClassType;
 use Laravel\Surveyor\Types\Contracts\Type;
+use Laravel\Surveyor\Types\Entities\ResourceResponse;
 use Laravel\Wayfinder\Langs\TypeScript;
 
 class TypeScriptConverter extends AbstractConverter
@@ -25,6 +29,7 @@ class TypeScriptConverter extends AbstractConverter
             Types\StringType::class => $this->convertStringResult($result),
             Types\UnionType::class => $this->convertUnionResult($result),
             Types\CallableType::class => $this->convertCallableResult($result),
+            ResourceResponse::class => $this->convertResourceResponseResult($result),
             default => throw new InvalidArgumentException('Unsupported result type: '.get_class($result)),
         };
     }
@@ -32,6 +37,58 @@ class TypeScriptConverter extends AbstractConverter
     protected function convertCallableResult(Types\CallableType $result): string
     {
         return $this->convert($result->returnType);
+    }
+
+    protected function convertResourceResponseResult(ResourceResponse $result): string
+    {
+        $resourceType = str_replace('\\', '.', $result->resourceClass);
+
+        if (! $result->isCollection) {
+            return $this->decorate($this->wrapResourceType($resourceType, $result->resourceClass), $result);
+        }
+
+        $innerType = $resourceType.'[]';
+
+        if ($this->isPaginator($result->wrappedData)) {
+            return $this->decorate($this->paginatedType($innerType), $result);
+        }
+
+        return $this->decorate($this->wrapResourceType($innerType, $result->resourceClass), $result);
+    }
+
+    protected function isPaginator(Type $type): bool
+    {
+        if (! $type instanceof ClassType) {
+            return false;
+        }
+
+        $resolved = $type->resolved();
+
+        return class_exists($resolved) && is_subclass_of($resolved, Paginator::class);
+    }
+
+    protected function wrapResourceType(string $type, string $resourceClass): string
+    {
+        if (class_exists($resourceClass) && is_subclass_of($resourceClass, JsonResource::class)) {
+            $wrap = $resourceClass::$wrap;
+
+            if ($wrap !== null) {
+                return '{ '.$wrap.': '.$type.' }';
+            }
+        }
+
+        return $type;
+    }
+
+    protected function paginatedType(string $dataType): string
+    {
+        return implode('', [
+            '{ data: '.$dataType,
+            ', links: { first: string | null; last: string | null; prev: string | null; next: string | null }',
+            ', meta: { current_page: number; from: number | null; last_page: number;',
+            ' links: { url: string | null; label: string; page: number | null; active: boolean }[];',
+            ' path: string; per_page: number; to: number | null; total: number } }',
+        ]);
     }
 
     protected function convertArrayResult(Types\ArrayType $result): string

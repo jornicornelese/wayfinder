@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
+use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,6 +42,15 @@ class InertiaController
                 'bio' => 'Hello world',
                 'avatar' => null,
             ],
+        ]);
+    }
+
+    public function resources(): Response
+    {
+        return Inertia::render('Resources', [
+            'users' => UserResource::collection(User::all()),
+            'paginatedUsers' => UserResource::collection(User::paginate()),
+            'singleUser' => UserResource::make(User::first()),
         ]);
     }
 

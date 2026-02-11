@@ -103,6 +103,7 @@ Route::get('/inertia/dashboard', [InertiaController::class, 'dashboard'])->name(
 Route::get('/inertia/settings', [InertiaController::class, 'settings'])->name('inertia.settings');
 Route::get('/inertia/profile', [InertiaController::class, 'profile'])->name('inertia.profile');
 Route::get('/inertia/unsafe', [InertiaController::class, 'unsafe'])->name('inertia.unsafe');
+Route::get('/inertia/resources', [InertiaController::class, 'resources'])->name('inertia.resources');
 
 Route::get('/inertia/duplicate', [DuplicateInertiaController::class, 'duplicate'])->name('inertia.duplicate');
 Route::get('/inertia/duplicate-with-data', [DuplicateInertiaController::class, 'duplicateWithData'])->name('inertia.duplicate.with-data');
@@ -115,3 +116,5 @@ Route::get('/prism/nested', [NestedPrismController::class, 'nested'])->name('pri
 
 Route::get('/resource/user', [ResourceController::class, 'show'])->name('resource.user');
 Route::get('/resource/unwrapped', [ResourceController::class, 'unwrapped'])->name('resource.unwrapped');
+Route::get('/resource/collection', [ResourceController::class, 'collection'])->name('resource.collection');
+Route::get('/resource/paginated', [ResourceController::class, 'paginated'])->name('resource.paginated');
